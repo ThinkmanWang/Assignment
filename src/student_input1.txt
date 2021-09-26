@@ -1,0 +1,9 @@
+8
+John, EE, 3.28
+Susan, CSE, 3.80
+Yapsiong, EE, 3.52
+Kwanyu, ME, 2.89
+Kelsey, ME, 3.90
+Menkel, CSE, 3.15
+Rars, EE, 2.52
+Max, EE, 3.35
