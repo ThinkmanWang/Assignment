@@ -37,7 +37,7 @@ public class Hw4_p3 {
         int x = 4;
         System.out.println("Array before change: " + Arrays.toString(stringArray));
         rearrange(stringArray, x);
-        System.out.println("Array before change: " + Arrays.toString(stringArray));
+        System.out.println("Array after change: " + Arrays.toString(stringArray));
 
     }
 }
