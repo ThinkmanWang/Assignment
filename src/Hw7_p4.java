@@ -1,6 +1,6 @@
 public class Hw7_p4 {
-    private static int hash(int nKey) {
-        return nKey % 5;
+    private static int hash(final int nKey, final int N) {
+        return nKey % N;
     }
 
     private static boolean keyExists(SinglyLinkedList lstKeys, int nKey) {
@@ -35,13 +35,13 @@ public class Hw7_p4 {
     public static void chainingMethod(SinglyLinkedList[] T, int[] a) {
         // implement this method
         for (int nKey : a) {
-            if (keyExists(T[hash(nKey)], nKey)) {
+            if (keyExists(T[hash(nKey, T.length)], nKey)) {
                 System.out.printf("Element %d already exists\n", nKey);
 
                 continue;
             }
 
-            T[hash(nKey)].addLast(nKey);
+            T[hash(nKey, T.length)].addLast(nKey);
         }
     }
 
