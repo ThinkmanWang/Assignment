@@ -1,0 +1,240 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.*;
+
+class ProcessInfo {
+    private int mPID;
+    private int mPriority;
+    private int mDuration;
+    private int mAarrivalTime;
+    private int mRunTime = 0;
+
+    public ProcessInfo(int nID, int nPriority, int nDuration, int nArrivalTime) {
+        this.mPID = nID;
+        this.mPriority = nPriority;
+        this.mDuration = nDuration;
+        this.mAarrivalTime = nArrivalTime;
+    }
+
+    public String toString() {
+        String szRet = String.format("Id = %d, priority = %d, duration = %d, arrival time = %d"
+                , this.getmPID()
+                , this.getmPriority()
+                , this.getmDuration()
+                , this.getmAarrivalTime());
+
+        return szRet;
+    }
+
+    public String toStringFinissh() {
+        String szRet = String.format("Process id = %d\n\tpriority = %d\n\tduration = %d\n\tarrival time = %d\n"
+                , this.getmPID()
+                , this.getmPriority()
+                , this.getmDuration()
+                , this.getmAarrivalTime());
+
+        return szRet;
+    }
+
+    public int getmRunTime() {
+        return mRunTime;
+    }
+
+    public void setmRunTime(int mRunTime) {
+        this.mRunTime = mRunTime;
+    }
+
+    public int getmPriority() {
+        return mPriority;
+    }
+
+    public int getmPID() {
+        return mPID;
+    }
+
+    public int getmAarrivalTime() {
+        return mAarrivalTime;
+    }
+
+    public int getmDuration() {
+        return mDuration;
+    }
+
+    public void setmPriority(int mPriority) {
+        this.mPriority = mPriority;
+    }
+
+    public void setmPID(int mPID) {
+        this.mPID = mPID;
+    }
+
+    public void setmAarrivalTime(int mAarrivalTime) {
+        this.mAarrivalTime = mAarrivalTime;
+    }
+
+    public void setmDuration(int mDuration) {
+        this.mDuration = mDuration;
+    }
+}
+
+class ProcessScheduler {
+    private ProcessInfo mCurProcess = null;
+    private int mCurrentTime = 0;
+    private boolean mAllFinished = false;
+    public static final int MAX_WAIT_TIME = 30;
+    public static int mTotalWaitTime = 0;
+
+    private List<ProcessInfo> mProcessNotReady = new ArrayList<>();
+    private PriorityQueue<ProcessInfo> mProcess = new PriorityQueue<>(new Comparator<ProcessInfo>() {
+        @Override
+        public int compare(ProcessInfo o1, ProcessInfo o2) {
+            return o1.getmPriority() - o2.getmPriority();
+        }
+    });
+
+    public void printAllProcess() {
+        for (ProcessInfo item : mProcessNotReady) {
+            System.out.println(item.toString());
+        }
+    }
+
+    private void updateQueue() {
+        //Get (don’t remove) a process p from D that has the earliest arrival time
+
+        Iterator<ProcessInfo> iterator = mProcessNotReady.iterator();
+        while(iterator.hasNext()) {
+            ProcessInfo item = iterator.next();
+            if (item.getmAarrivalTime() <= mCurrentTime) {
+                iterator.remove();
+
+                mProcess.add(item);
+            }
+        }
+    }
+
+    private void updatePriority() {
+        System.out.println("Update priority: ");
+
+        for (ProcessInfo item : mProcess) {
+            if (mCurProcess == item) {
+                continue;
+            }
+
+            if (mCurrentTime - item.getmAarrivalTime() >= MAX_WAIT_TIME
+                    && item.getmPriority() > 0) {
+                System.out.printf("" +
+                                "PID = %d, wait time = %d, current priority = %d \n" +
+                                "PID = %d, new priority = %d\n"
+                        , item.getmPID()
+                        , mCurrentTime - item.getmAarrivalTime()
+                        , item.getmPriority()
+                        , item.getmPID()
+                        , item.getmPriority() - 1);
+
+                item.setmPriority(item.getmPriority() - 1);
+            }
+        }
+
+        System.out.println();
+    }
+
+    public void init(String szFile) {
+        FileReader fr = null;
+        BufferedReader bf = null;
+
+        try {
+            fr = new FileReader(szFile);
+            bf = new BufferedReader(fr);
+
+            String str;
+            while ((str = bf.readLine()) != null) {
+                str = str.trim();
+                String[] lstData = str.split(" ");
+
+                mProcessNotReady.add(new ProcessInfo(
+                        Integer.parseInt(lstData[0])
+                        , Integer.parseInt(lstData[1])
+                        , Integer.parseInt(lstData[2])
+                        , Integer.parseInt(lstData[3])
+                ));
+            }
+        } catch (Exception ex) {
+
+        } finally {
+            try {
+                bf.close();
+                fr.close();
+            } catch (Exception ex) {
+
+            }
+
+        }
+    }
+
+    private void createProcess() {
+        mCurProcess = mProcess.remove();
+        mTotalWaitTime += mCurrentTime - mCurProcess.getmAarrivalTime();
+        System.out.printf("Process removed from queue is: id = %d, at time %d, wait time = %d Total wait time = %.1f\n"
+                , mCurProcess.getmPID()
+                , mCurrentTime
+                , mCurrentTime - mCurProcess.getmAarrivalTime()
+                , (float)mTotalWaitTime);
+    }
+
+    public void start() {
+        while (false == mAllFinished) {
+            try {
+
+                if (mAllFinished) {
+                    break;
+                }
+
+                //Get (don’t remove) a process p from D that has the earliest arrival time
+                updateQueue();
+
+                if (mCurProcess != null) {
+                    mCurProcess.setmRunTime(mCurProcess.getmRunTime() + 1);
+
+                    if (mCurProcess.getmRunTime() >= mCurProcess.getmDuration()) {
+                        //process finished
+                        System.out.println(mCurProcess.toStringFinissh());
+                        System.out.printf("Process %d finished at time %d\n\n", mCurProcess.getmPID(), mCurrentTime);
+
+                        updatePriority();
+                        createProcess();
+                    } else {
+                        continue;
+                    }
+
+                } else {
+                    if (mProcess.size() > 0) {
+                        createProcess();
+                    }
+                }
+
+                if (null == mCurProcess && mProcess.size() <= 0 && mProcessNotReady.size() <= 0) {
+                    mAllFinished = true;
+                }
+            } catch (Exception ex) {
+                int a = 0;
+            } finally {
+                try {
+                    Thread.sleep(1000);
+                    mCurrentTime += 1;
+                } catch (Exception ex) {
+                }
+            }
+        }
+    }
+}
+
+public class ProcessScheduling {
+    public static void main(String[] args) {
+        ProcessScheduler processScheduler = new ProcessScheduler();
+        processScheduler.init("/Users/wangxiaofeng/Github-Thinkman/Assignment/src/process_scheduling_input.txt");
+        processScheduler.printAllProcess();
+
+        System.out.printf("\nMaximum wait time = %d\n\n", ProcessScheduler.MAX_WAIT_TIME);
+        processScheduler.start();
+    }
+}
