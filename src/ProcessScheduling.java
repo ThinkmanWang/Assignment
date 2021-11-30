@@ -164,6 +164,7 @@ class ProcessScheduler {
             }
         }
 
+        mProcess = new PriorityQueue<>(mProcess); //resort
         System.out.println();
         mOutStream.println();
     }
